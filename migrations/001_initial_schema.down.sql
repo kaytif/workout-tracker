@@ -8,7 +8,7 @@ CREATE TABLE workouts (
     name TEXT NOT NULL CHECK (length(name) > 0),
 
     -- Workout must have a date
-    transaction_date DATE NOT NULL,
+    workout_date DATE NOT NULL,
 
     -- Workout must be inputted at a certain time
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
