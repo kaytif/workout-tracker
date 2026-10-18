@@ -22,17 +22,6 @@ CREATE TABLE workouts (
 
 
 
- 
-
-
-
-
-
-
-
-
-
-
 
 
 
