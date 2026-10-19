@@ -22,7 +22,7 @@ func createWorkout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// now we have to run validation checks
+	// ----------- name validation ----------------
 
 
 	// validate that name is not empty
@@ -32,21 +32,50 @@ func createWorkout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// ----------- date validation ----------------
+
+	// make sure it is not empty
+	if newWorkout.Date == "" {
+		writeJSONError(w, "Workout date is required", http.StatusBadRequest)
+		return
+	}
+
+	// Parse the date
+	workoutDate, err := time.Parse("2006-01-02", newWorkout.Date)
+	if err != nil {
+		writeJSONError(w, "Invalid date format", http.StatusBadRequest)
+		return
+	}
+
+	// Make sure the date is not greater than today
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	if workoutDate.After(today) {
+		writeJSONError(w, "Workout date can not be in the future", http.StatusBadRequest)
+		return
+	}
+
 	// now inserting into postgre sql. we need to scan the rows and get the id
 	// this is because the frontend might need to use it
 	err = db.QueryRow(
-		"INSERT INTO transactions (account_id, name, amount, transaction_date, category_id) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		"INSERT INTO workouts (id, name, workout_date, created_at, reps, sets) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
 		newWorkout.ID,
 		newWorkout.Name,
-		newWorkout.Amount,
-		newWorkout.CategoryID,
-	).Scan(&newTransaction.ID)
+		newWorkout.Date,
+		time.Now(),
+		newWorkout.Reps,
+		newWorkout.Sets,
+	).Scan(&newWorkout.ID)
 
 	if err != nil {
 		writeJSONError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	// Expense succesfull created
+	w.WriteHeader(http.StatusCreated)
 
+	// send created expense back as JSON
+	json.NewEncoder(w).Encode(newWorkout)
 
 }
 

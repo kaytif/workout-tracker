@@ -1,4 +1,4 @@
--- ACCOUNTS TABLE
+-- WORKOUTS TABLE
 -- Stores each account
 CREATE TABLE workouts (
     -- UNIQUE ID automatically generated
@@ -18,6 +18,12 @@ CREATE TABLE workouts (
 
     -- Timestamp used for soft deletion
     deleted_at TIMESTAMPTZ
+
+    -- Workout must have sets
+    sets INTEGER NOT NULL CHECK (sets > 0)
+
+    -- Workout must have reps
+    reps INTEGER NOT NULL CHECK (sets > 0)
 );
 
 
