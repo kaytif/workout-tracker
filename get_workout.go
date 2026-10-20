@@ -59,6 +59,5 @@ func getWorkout(w http.ResponseWriter, r *http.Request) {
 
 	// send completed response back to client
 	json.NewEncoder(w).Encode(workouts)
-
 }
 
