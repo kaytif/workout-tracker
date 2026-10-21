@@ -1,5 +1,9 @@
 // Import useState, a React Hook that lets components remember values
 import { useState } from "react";
+import { DayPicker } from "react-day-picker";
+
+// Import the day picker package for adding a calendar style date selection
+import "react-day-picker/style.css";
 
 // Define our main React component
 function App() {
@@ -11,20 +15,51 @@ function App() {
   // Stores the workout name netered by the user
   const [workoutName, setWorkoutName] = useState("");
 
+  // Stores the selected date; defaults to today
+  const [workoutDate, setWorkoutDate] = useState<Date | undefined>(
+    new Date()
+  )
+
+  // Stores the number of sets and reps
+  const [sets, setSets] = useState("");
+  const [reps, setReps] = useState("");
+
   // Stores the last submitted workout name
   const [savedWorkout, setSavedWorkout] = useState("");
 
+  // Send the workout to Go backend
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
 
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-    e.preventDefault(); // Prevents the page from refreshing
+    // Send POST request to Go
+    const response = await fetch("/api/workouts", {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify({
+        name: workoutName,
+        date: workoutDate
+          ? `${workoutDate.getFullYear()}-${String(workoutDate.getMonth() + 1).padStart(2, "0")}-${String(workoutDate.getDate()).padStart(2, "0")}`
+          : null,
+        sets: Number(sets),
+        reps: Number(reps),
+      }),
+    });
 
-    setSavedWorkout(workoutName); // Store the submitted name
-    setWorkoutName("");           // Clear the input
-    setShowForm(false);           // Hide the form
+    // Check whether Go successfully saved the workout
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      console.error("Failed to save workout:", errorMessage);
+      return;
+    }
 
-    console.log(workoutName); // Prints the workout name
+    // Update the frontend after successful submission
+    setSavedWorkout(workoutName);
+    setWorkoutName("");
+    setShowForm(false);
   }
-
 
   // Return the UI that React will display in the browser
   return (
@@ -45,21 +80,47 @@ function App() {
       {showForm && (
         <form onSubmit={handleSubmit}>
           {/* Text field for entering the workout name */}
-          <input 
+          <input
             // Specifies that this is a text input
-            type="text" 
+            type="text"
 
             // Displays this hint when the input is empty
-            placeholder="Workout name" 
+            placeholder="Workout name"
 
             // Sets the input's displayed text to the workout Name state
             value={workoutName}
 
             // Runs wheneve the user types or changes the input
             onChange={(e) => setWorkoutName(e.target.value)}
-            
+
+          />
+
+          {/*Interactive workout calendar */}
+          <DayPicker
+            mode="single"
+            selected={workoutDate}
+            onSelect={setWorkoutDate}
+          />
+
+          {/*Number of sets */}
+          <input
+            type="number"
+            min="1"
+            placeholder="Sets"
+            value={sets}
+            onChange={(e) => setSets(e.target.value)}
+           />
+
+          {/* Number of reps */}
+          <input
+            type="number"
+            min="1"
+            placeholder="Reps"
+            value={reps}
+            onChange={(e) => setReps(e.target.value)} 
             />
 
+          
           {/* Button that submits the form */}
           <button type="submit">Save Workout</button>
         </form>

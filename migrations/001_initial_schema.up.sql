@@ -5,7 +5,7 @@ CREATE TABLE workouts (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     -- Workout name
-    name TEXT NOT NULL CHECK (length(name) > 0),
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
 
     -- Workout must have a date
     workout_date DATE NOT NULL,
@@ -17,23 +17,62 @@ CREATE TABLE workouts (
     updated_at TIMESTAMPTZ,
 
     -- Timestamp used for soft deletion
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
 
-    -- Workout must have sets
-    sets INTEGER NOT NULL CHECK (sets > 0)
-
-    -- Workout must have reps
-    reps INTEGER NOT NULL CHECK (sets > 0)
+    -- Program that is in the workout
+    program_id INTEGER REFERENCES programs(id)
+    
 );
 
 
+CREATE TABLE exercises (
+    -- UNIQUE ID automatically generated
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
+    -- Exercise Name
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+);
 
+CREATE TABLE programs (
+    -- UNIQUE ID automatically generated
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
+    -- Program name
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0)
 
+);
 
+CREATE TABLE workout_exercises (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
+    workout_id INTEGER NOT NULL REFERENCES workouts(id),
 
+    exercise_id INTEGER NOT NULL REFERENCES exercises(id),
+);
+
+CREATE TABLE program_exercises (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    program_id INTEGER NOT NULL REFERENCES programs(id),
+
+    exercise_id INTEGER NOT NULL REFERENCES exercises(id),
+
+    UNIQUE (program_id, exercise_id)
+);
+
+CREATE TABLE exercise_sets (
+    id INTEGER GENERATED AS ALWAYS AS IDENTITY PRIMARY KEY,
+
+    workout_exercise_id INTEGER NOT NULL REFERENCES workout_exercises(id),
+    
+    set_number INTEGER NOT NULL CHECK (set_number > 0),
+
+    reps INTEGER NOT  NULL CHECK (reps >= 0),
+
+    weight_kg NUMERIC(7,2) CHECK (weight_kg >= 0),
+
+    UNIQUE (workout_exercise_id, set_number)
+);
 
 
 

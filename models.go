@@ -11,6 +11,55 @@ type Workout struct {
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
-	Sets      int        `json:"sets"`
-	Reps      int        `json:"reps"`
+	ProgramID *int       `json:"program_id"`
+}
+
+type Program struct {
+	ID        int        `json:"id"`
+	Name      string     `json:"name"`
+}
+
+type Exercise struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type WorkoutExercise struct {
+	ID         int `json:"id"`
+	WorkoutID  int `json:"workout_id"`
+	ExerciseID int `json:"exercise_id"`
+	Sets       int `json:"sets"`
+	Reps       int `json:"reps"`
+}
+
+type ProgramExercise struct {
+	ID         int `json:"id"`
+	ProgramID  int `json:"program_id"`
+	ExerciseID int `json:"exercise_id"`
+}
+
+type WorkoutExerciseResponse struct {
+	ExerciseID int    `json:"exercise_id"`
+	Name       string `json:"name"`
+	Sets       int    `json:"sets"`
+	Reps       int    `json:"reps"`
+}
+
+type WorkoutResponse struct {
+	ID          int                       `json:"id"`
+	Name        string                    `json:"name"`
+	Date        string                    `json:"date"`
+	ProgramName *string                   `json:"program_name"`
+	Exercises   []WorkoutExerciseResponse `json:"exercises"`
+}
+
+type ProgramExerciseResponse struct {
+	ExerciseID int    `json:"exercise_id"`
+	Name       string `json:"name"`
+}
+
+type ProgramResponse struct {
+	ID int `json:"id"`
+	Name string `json:"name"`
+	Exercises []ProgramExerciseResponse `json:"exercises"`
 }
