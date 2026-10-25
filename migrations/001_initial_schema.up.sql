@@ -20,7 +20,7 @@ CREATE TABLE workouts (
     deleted_at TIMESTAMPTZ,
 
     -- Program that is in the workout
-    program_id INTEGER REFERENCES programs(id)
+    program_id INTEGER REFERENCES programs(id) ON DELETE SET NULL
     
 );
 
@@ -30,7 +30,7 @@ CREATE TABLE exercises (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     -- Exercise Name
-    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0) UNIQUE,
 );
 
 CREATE TABLE programs (
@@ -38,7 +38,8 @@ CREATE TABLE programs (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     -- Program name
-    name TEXT NOT NULL CHECK (length(trim(name)) > 0)
+    
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0) UNIQUE    
 
 );
 

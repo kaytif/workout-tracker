@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"time"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -62,14 +62,17 @@ func updateWorkout(w http.ResponseWriter, r *http.Request) {
 
 	// now we check that the workout actually exists based on the workout id
 	err = db.QueryRow(
-		`SELECT id FROM workouts WHERE id = 1 and deleted_at IS NULL`,
+		`SELECT id FROM workouts WHERE id = $1 and deleted_at IS NULL`,
 		id,
 	).Scan(&workout.ID)
 
-	// check
-
 	if errors.Is(err, sql.ErrNoRows) {
 		writeJSONError(w, "Workout does not exist", http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		writeJSONError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -92,36 +95,57 @@ func updateWorkout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse the date
-	workoutDate, err := time.Parse("2006-01-02", workout.Date)
-	if err != nil {
-		writeJSONError(w, "Invalid date format", http.StatusBadRequest)
-		return
-	}
+	// workoutDate, err := time.Parse("2006-01-02", workout.Date)
+	// if err != nil {
+	//	writeJSONError(w, "Invalid date format", http.StatusBadRequest)
+	//	return
+	// }
 
 	// Make sure the date is not greater than today
-	now := time.Now()
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	if workoutDate.After(today) {
-		writeJSONError(w, "Workout date can not be in the future", http.StatusBadRequest)
-		return
+	// now := time.Now()
+	// today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	// if workoutDate.After(today) {
+	//	writeJSONError(w, "Workout date can not be in the future", http.StatusBadRequest)
+	//	return
+	// }
+
+	// Now we check that if the program_id was updated that the program updated to actually exists
+	if workout.ProgramID != nil {
+		var programID int
+
+		err = db.QueryRow(
+			`SELECT programs.id
+			FROM programs
+			where id = $1`,
+			*workout.ProgramID,
+		).Scan(&programID)
+
+		// give error if no program with this id even exists
+		if errors.Is(err, sql.ErrNoRows) {
+			writeJSONError(w, "Program not found", http.StatusNotFound)
+			return
+		}
+
+		// give error if no program with this id even exists
+		if err != nil {
+			writeJSONError(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
 	}
 
 	// once all is said and done, let's update the workout
 	result, err := db.Exec(
 		`UPDATE workouts 
-		SET 
-		name = $1,
-		workout_date = $2, 
-		created_at = $3,
-		updated_at = $4,
-		sets = $5,
-		reps = $6`,
+		SET name = $1,
+			workout_date = $2,
+			program_id = $3,
+			updated_at = NOW()
+		WHERE id = $4 AND deleted_at IS NULL`,
 		workout.Name,
 		workout.Date,
-		workout.CreatedAt,
-		time.Now(),
-		workout.Sets,
-		workout.Reps,
+		workout.ProgramID,
+		id,
 	)
 
 	if err != nil {
@@ -144,6 +168,8 @@ func updateWorkout(w http.ResponseWriter, r *http.Request) {
 
 	// keep the ID from the url
 	workout.ID = id
+
+	w.Header().Set("Content-Type", "application/json")
 
 	// send updated transaction back as json
 	json.NewEncoder(w).Encode(workout)

@@ -15,8 +15,8 @@ type Workout struct {
 }
 
 type Program struct {
-	ID        int        `json:"id"`
-	Name      string     `json:"name"`
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 type Exercise struct {
@@ -59,7 +59,15 @@ type ProgramExerciseResponse struct {
 }
 
 type ProgramResponse struct {
-	ID int `json:"id"`
-	Name string `json:"name"`
+	ID        int                       `json:"id"`
+	Name      string                    `json:"name"`
 	Exercises []ProgramExerciseResponse `json:"exercises"`
+}
+
+type ExerciseSets struct {
+	ID        int `json:"id"`
+	WorkoutExerciseID int `json:"workout_exercise_id"`
+	SetNumber int `json:"set_number"`
+	Reps      *int `json:"reps"`
+	Weight    *float64 `json:"weight"`
 }

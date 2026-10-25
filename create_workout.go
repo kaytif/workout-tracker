@@ -2,16 +2,17 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
-	"time"
-
+	"strings"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func createWorkout(w http.ResponseWriter, r *http.Request) {
 
-	// create an empty account
+	// create an empty workout
 	var newWorkout Workout
 
 	// first decode the request
@@ -25,7 +26,10 @@ func createWorkout(w http.ResponseWriter, r *http.Request) {
 	// ----------- name validation ----------------
 
 	// validate that name is not empty
-	err = validation.Validate(newWorkout.Name, validation.Required)
+	err = validation.Validate(
+		strings.TrimSpace(newWorkout.Name),
+		validation.Required,
+	)
 	if err != nil {
 		writeJSONError(w, "Name not given", http.StatusBadRequest)
 		return
@@ -57,23 +61,39 @@ func createWorkout(w http.ResponseWriter, r *http.Request) {
 	// now inserting into postgre sql. we need to scan the rows and get the id
 	// this is because the frontend might need to use it
 	err = db.QueryRow(
-		"INSERT INTO workouts (name, workout_date, created_at, updated_at, program_id) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		`INSERT 
+		INTO workouts 
+		(name, 
+		workout_date, 
+		program_id) 
+		VALUES ($1, $2, $3) 
+		RETURNING id`,
 		newWorkout.Name,
 		newWorkout.Date,
-		time.Now(),
-		newWor,
-		newWorkout.Sets,
+		newWorkout.ProgramID,
 	).Scan(&newWorkout.ID)
+
+	// catch error when program id does not exist
+	var pgErr *pgconn.PgError
+
+	if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+		writeJSONError(w, "Program does not exist", http.StatusBadRequest)
+		return
+	}
 
 	if err != nil {
 		log.Println("Database insert error:", err)
 		writeJSONError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	// Expense succesfull created
+
+	// Set the header
+	w.Header().Set("Content-Type", "application/json")
+
+	// Workout succesfuly created
 	w.WriteHeader(http.StatusCreated)
 
-	// send created expense back as JSON
+	// Send created workout back as JSON
 	json.NewEncoder(w).Encode(newWorkout)
 
 }
