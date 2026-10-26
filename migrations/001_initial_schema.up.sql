@@ -66,9 +66,9 @@ CREATE TABLE exercise_sets (
 
     workout_exercise_id INTEGER NOT NULL REFERENCES workout_exercises(id),
     
-    set_number INTEGER NOT NULL CHECK (set_number > 0),
+    set_number NOT NULL INTEGER CHECK (set_number > 0),
 
-    reps INTEGER NOT  NULL CHECK (reps >= 0),
+    reps INTEGER CHECK (reps >= 0),
 
     weight_kg NUMERIC(7,2) CHECK (weight_kg >= 0),
 

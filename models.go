@@ -64,7 +64,7 @@ type ProgramResponse struct {
 	Exercises []ProgramExerciseResponse `json:"exercises"`
 }
 
-type ExerciseSets struct {
+type ExerciseSet struct {
 	ID        int `json:"id"`
 	WorkoutExerciseID int `json:"workout_exercise_id"`
 	SetNumber int `json:"set_number"`

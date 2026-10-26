@@ -38,7 +38,7 @@ func updateWorkout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. id is not 0 or negative
+	// 3. id is 0 or negative
 	if err := validation.Validate(
 		id,
 		validation.Min(1).Error("ID must be greater than 0"),
@@ -171,6 +171,6 @@ func updateWorkout(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	// send updated transaction back as json
+	// send updated workout back as json
 	json.NewEncoder(w).Encode(workout)
 }
