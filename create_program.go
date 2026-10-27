@@ -2,18 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func createProgram(w http.ResponseWriter, r *http.Request) {
 
 	// Create Program var to store incoming program in
 	var program Program
-	
+
 	// first we need to decode the program
 	err := json.NewDecoder(r.Body).Decode(&program)
 
@@ -23,11 +25,13 @@ func createProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	program.Name = strings.TrimSpace(program.Name)
+
 	// ------ name validation --------------
-	
+
 	// 1. validate that name is not empty
 	err = validation.Validate(
-		strings.TrimSpace(program.Name),
+		program.Name,
 		validation.Required,
 	)
 
@@ -48,19 +52,23 @@ func createProgram(w http.ResponseWriter, r *http.Request) {
 	// id validation not needed since postgresql generates it for us.
 
 	if err != nil {
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			writeJSONError(w, "Program already exists", http.StatusConflict)
+			return
+		}
 		log.Println("Database insert error:", err)
 		writeJSONError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	// set the header 
+	// set the header
 	w.Header().Set("content-Type", "application/json")
 
-	// Workout successfully created
+	// Program successfully created
 	w.WriteHeader(http.StatusCreated)
 
-	// Send created workout back as JSON
+	// Send created Program back as JSON
 	json.NewEncoder(w).Encode(program)
-	}
-
-	
+}

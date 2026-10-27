@@ -37,6 +37,8 @@ func updateProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	
+
 	// Validate that program name is not empty
 	err = validation.Validate(
 		strings.TrimSpace(program.Name),
@@ -66,10 +68,6 @@ func updateProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != nil {
-		writeJSONError(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
 
 	// Validate that program name is unique
 	// The error will come through from postgresql and we need to

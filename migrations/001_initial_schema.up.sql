@@ -38,7 +38,6 @@ CREATE TABLE programs (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     -- Program name
-    
     name TEXT NOT NULL CHECK (length(trim(name)) > 0) UNIQUE    
 
 );
