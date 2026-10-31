@@ -1,9 +1,9 @@
 package main
 
 import (
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"net/http"
 	"strconv"
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 func deleteWorkout(w http.ResponseWriter, r *http.Request) {

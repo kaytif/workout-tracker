@@ -1,9 +1,8 @@
 package main
 
-import(
+import (
 	"net/http"
 	"strconv"
-
 )
 
 func deleteExerciseSet(w http.ResponseWriter, r *http.Request) {
@@ -14,10 +13,9 @@ func deleteExerciseSet(w http.ResponseWriter, r *http.Request) {
 	// first read ID from URL
 	idString := r.URL.Query().Get("id")
 
-
 	// convert ID from string to integer
 	id, err := strconv.Atoi(idString)
-	
+
 	// check if id i valid
 	if err != nil || id <= 0 {
 		writeJSONError(w, "Invalid ID", http.StatusBadRequest)

@@ -51,8 +51,6 @@ func updateExercise(w http.ResponseWriter, r *http.Request) {
 
 	// ------ Check whether exercise to update exists -----
 
-
-
 	// Validate that exercise name is unique
 	// The error will come through from postgresql and we need to
 	// check the error code and give the required alert

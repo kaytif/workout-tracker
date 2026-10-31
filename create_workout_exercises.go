@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
-	"log"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jackc/pgx/v5/pgconn"
+	"log"
+	"net/http"
 )
 
 func createWorkoutExercise(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +26,7 @@ func createWorkoutExercise(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// repeat for exercise ID 
+	// repeat for exercise ID
 	err = validation.Validate(workoutExercise.ExerciseID, validation.Required, validation.Min(1))
 	if err != nil {
 		writeJSONError(w, "Invalid exercise ID", http.StatusBadRequest)
@@ -49,7 +49,6 @@ func createWorkoutExercise(w http.ResponseWriter, r *http.Request) {
 		workoutExercise.ExerciseID,
 	).Scan(&workoutExercise.ID)
 
-	
 	if err != nil {
 		var pgErr *pgconn.PgError
 
@@ -60,17 +59,16 @@ func createWorkoutExercise(w http.ResponseWriter, r *http.Request) {
 				case "workout_exercises_workout_id_fkey":
 					writeJSONError(w, "Workout does not exist", http.StatusBadRequest)
 					return
-				
+
 				case "workout_exercises_exercise_id_fkey":
 					writeJSONError(w, "Exercise does not exist", http.StatusBadRequest)
 					return
-		
-				
+
 				}
 			}
 
 		}
-		
+
 		log.Println("Database insert error:", err)
 		writeJSONError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
@@ -85,4 +83,4 @@ func createWorkoutExercise(w http.ResponseWriter, r *http.Request) {
 	// Send created workoutexercise back as JSON
 	json.NewEncoder(w).Encode(workoutExercise)
 
-	}
+}

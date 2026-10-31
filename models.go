@@ -28,8 +28,6 @@ type WorkoutExercise struct {
 	ID         int `json:"id"`
 	WorkoutID  int `json:"workout_id"`
 	ExerciseID int `json:"exercise_id"`
-	Sets       int `json:"sets"`
-	Reps       int `json:"reps"`
 }
 
 type ProgramExercise struct {
@@ -39,10 +37,10 @@ type ProgramExercise struct {
 }
 
 type WorkoutExerciseResponse struct {
-	ExerciseID int    `json:"exercise_id"`
-	Name       string `json:"name"`
-	Sets       int    `json:"sets"`
-	Reps       int    `json:"reps"`
+	ID         int           `json:"id"`
+	ExerciseID int           `json:"exercise_id"`
+	Name       string        `json:"name"`
+	Sets       []ExerciseSet `json:"sets"`
 }
 
 type WorkoutResponse struct {
@@ -65,9 +63,9 @@ type ProgramResponse struct {
 }
 
 type ExerciseSet struct {
-	ID        int `json:"id"`
-	WorkoutExerciseID int `json:"workout_exercise_id"`
-	SetNumber int `json:"set_number"`
-	Reps      *int `json:"reps"`
-	Weight    *float64 `json:"weight"`
+	ID                int      `json:"id"`
+	WorkoutExerciseID int      `json:"workout_exercise_id"`
+	SetNumber         int      `json:"set_number"`
+	Reps              *int     `json:"reps"`
+	Weight            *float64 `json:"weight"`
 }

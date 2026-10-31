@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
-	"log"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jackc/pgx/v5/pgconn"
+	"log"
+	"net/http"
 )
 
 func createProgramExercise(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +26,7 @@ func createProgramExercise(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// repeat for exercise ID 
+	// repeat for exercise ID
 	err = validation.Validate(programExercise.ExerciseID, validation.Required, validation.Min(1))
 	if err != nil {
 		writeJSONError(w, "Invalid ID", http.StatusBadRequest)
@@ -49,7 +49,6 @@ func createProgramExercise(w http.ResponseWriter, r *http.Request) {
 		programExercise.ExerciseID,
 	).Scan(&programExercise.ID)
 
-	
 	if err != nil {
 		var pgErr *pgconn.PgError
 
@@ -60,21 +59,20 @@ func createProgramExercise(w http.ResponseWriter, r *http.Request) {
 				case "program_exercises_program_id_fkey":
 					writeJSONError(w, "Program does not exist", http.StatusBadRequest)
 					return
-				
+
 				case "program_exercises_exercise_id_fkey":
 					writeJSONError(w, "Exercise does not exist", http.StatusBadRequest)
 					return
-		
-				
+
 				}
 			}
 			// unique constraint violation
-			if pgErr.Code == "23505"{
+			if pgErr.Code == "23505" {
 				writeJSONError(w, "Exercise already exists in this program", http.StatusConflict)
 				return
 			}
 		}
-		
+
 		log.Println("Database insert error:", err)
 		writeJSONError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
@@ -89,4 +87,4 @@ func createProgramExercise(w http.ResponseWriter, r *http.Request) {
 	// Send created workout back as JSON
 	json.NewEncoder(w).Encode(programExercise)
 
-	}
+}

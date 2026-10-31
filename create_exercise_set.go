@@ -1,13 +1,13 @@
 package main
 
-import(
-	"net/http"
-	"errors"
-	"encoding/json"
-	validation "github.com/go-ozzo/ozzo-validation/v4"
+import (
 	"database/sql"
-	"log"
+	"encoding/json"
+	"errors"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jackc/pgx/v5/pgconn"
+	"log"
+	"net/http"
 )
 
 func createExerciseSet(w http.ResponseWriter, r *http.Request) {
@@ -36,14 +36,13 @@ func createExerciseSet(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, "Invalid Reps", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Validate weight
 	err = validation.Validate(exerciseSet.Weight, validation.Min(0))
 	if err != nil {
 		writeJSONError(w, "Invalid Weight", http.StatusBadRequest)
 		return
 	}
-
 
 	// ---- insert, and then you need to validate the things inserted
 	tx, err := db.BeginTx(r.Context(), nil)
@@ -62,7 +61,7 @@ func createExerciseSet(w http.ResponseWriter, r *http.Request) {
 	FROM workout_exercises
 	WHERE id = $1
 	FOR UPDATE`,
-	exerciseSet.WorkoutExerciseID).Scan(&id)
+		exerciseSet.WorkoutExerciseID).Scan(&id)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		writeJSONError(w, "Workout exercise not found", 404)
@@ -73,7 +72,6 @@ func createExerciseSet(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, "Internal server error", 500)
 		return
 	}
-
 
 	// Calculate next set number and insert
 	err = tx.QueryRow(`
@@ -91,10 +89,10 @@ func createExerciseSet(w http.ResponseWriter, r *http.Request) {
 	FROM exercise_sets
 	WHERE workout_exercise_id = $1
 	RETURNING id, set_number`,
-	exerciseSet.WorkoutExerciseID,
-	exerciseSet.Reps,
-	exerciseSet.Weight,
-).Scan(&exerciseSet.ID, &exerciseSet.SetNumber)
+		exerciseSet.WorkoutExerciseID,
+		exerciseSet.Reps,
+		exerciseSet.Weight,
+	).Scan(&exerciseSet.ID, &exerciseSet.SetNumber)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -109,32 +107,31 @@ func createExerciseSet(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			// unique constraint violation
-			if pgErr.Code == "23505"{
+			if pgErr.Code == "23505" {
 				writeJSONError(w, "Set number already exsits for this workout", http.StatusConflict)
 				return
 			}
 		}
-		
+
 		log.Println("Database insert error:", err)
 		writeJSONError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-err = tx.Commit()
-if err != nil {
-	log.Println("Transaction commit error:", err)
-	writeJSONError(w, "Internal server error", http.StatusInternalServerError)
-	return
-}
+	err = tx.Commit()
+	if err != nil {
+		log.Println("Transaction commit error:", err)
+		writeJSONError(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
-// Setting header
-w.Header().Set("Content-Type", "application/json")
+	// Setting header
+	w.Header().Set("Content-Type", "application/json")
 
-// Returning HTTP 201
-w.WriteHeader(http.StatusCreated)
+	// Returning HTTP 201
+	w.WriteHeader(http.StatusCreated)
 
-// send updated workout_exercise back as a josn
-json.NewEncoder(w).Encode(exerciseSet)
-
+	// send updated workout_exercise back as a josn
+	json.NewEncoder(w).Encode(exerciseSet)
 
 }

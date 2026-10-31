@@ -37,11 +37,10 @@ func updateProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
+	program.Name = strings.TrimSpace(program.Name)
 
 	// Validate that program name is not empty
-	err = validation.Validate(
-		strings.TrimSpace(program.Name),
+	err = validation.Validate(program.Name,
 		validation.Required,
 	)
 
@@ -51,23 +50,6 @@ func updateProgram(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// ------ Check whether program to update exists -----
-
-	// note that we don't use rows affected here because
-	// rows affected occurs as a result of changing data
-	// i.e. checks how many rows were affected by the update
-
-	var checkProgram Program
-
-	err = db.QueryRow(
-		"SELECT id, name FROM programs WHERE id = $1",
-		id,
-	).Scan(&checkProgram.ID, &checkProgram.Name)
-
-	if errors.Is(err, sql.ErrNoRows) {
-		writeJSONError(w, "Program not found", http.StatusNotFound)
-		return
-	}
-
 
 	// Validate that program name is unique
 	// The error will come through from postgresql and we need to
